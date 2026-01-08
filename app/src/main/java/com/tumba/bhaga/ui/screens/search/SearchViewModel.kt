@@ -33,10 +33,10 @@ class SearchViewModel @Inject constructor(
 
     fun getFilteredEntries(query: String): List<SearchEntry> {
         val currentEntries = _entries.value
-        if (currentEntries.isEmpty() || query.isEmpty()) return emptyList()
 
-        if (query.isEmpty()) {
-            return listOf()
+        // Return empty if query is empty OR if there are no entries
+        if (query.isEmpty() || currentEntries.isEmpty()) {
+            return emptyList()
         }
 
         val q = query.lowercase()

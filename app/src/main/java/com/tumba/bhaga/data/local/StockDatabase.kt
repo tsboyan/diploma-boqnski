@@ -9,11 +9,13 @@ import com.tumba.bhaga.data.local.dao.InvalidationDao
 import com.tumba.bhaga.data.local.dao.NewsDao
 import com.tumba.bhaga.data.local.dao.SearchDao
 import com.tumba.bhaga.data.local.dao.StockDao
+import com.tumba.bhaga.data.local.dao.UserDao
 import com.tumba.bhaga.data.local.entity.CompanyNewsEntity
 import com.tumba.bhaga.data.local.entity.CompanyProfileEntity
 import com.tumba.bhaga.data.local.entity.FavouriteEntity
 import com.tumba.bhaga.data.local.entity.QuoteEntity
 import com.tumba.bhaga.data.local.entity.SearchEntryEntity
+import com.tumba.bhaga.data.local.entity.UserEntity
 import java.io.FileOutputStream
 
 @Database(
@@ -22,9 +24,10 @@ import java.io.FileOutputStream
         QuoteEntity::class,
         CompanyNewsEntity::class,
         FavouriteEntity::class,
-        SearchEntryEntity::class
+        SearchEntryEntity::class,
+        UserEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class StockDatabase : RoomDatabase() {
@@ -38,8 +41,25 @@ abstract class StockDatabase : RoomDatabase() {
 
     abstract fun searchDao(): SearchDao
 
+    abstract fun userDao(): UserDao
+
     companion object {
         @Volatile private var INSTANCE: StockDatabase? = null
+
+        private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Create the new user table
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS user (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        password TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
 
         fun getInstance(context: Context): StockDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -61,6 +81,7 @@ abstract class StockDatabase : RoomDatabase() {
                     dbName
                 )
                     .createFromFile(dbPath)
+                    .addMigrations(MIGRATION_1_2)
                     .build()
 
                 INSTANCE = instance

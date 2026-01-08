@@ -1,16 +1,12 @@
 package com.tumba.bhaga.ui.navigation
 
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -18,8 +14,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.tumba.bhaga.ui.screens.favourites.FavouritesScreen
 import com.tumba.bhaga.ui.screens.home.HomeScreen
+import com.tumba.bhaga.ui.screens.login.LoginScreen
 import com.tumba.bhaga.ui.screens.search.SearchScreen
 import com.tumba.bhaga.ui.screens.settings.SettingsScreen
+import com.tumba.bhaga.ui.screens.signup.SignUpScreen
 import com.tumba.bhaga.ui.screens.stockdetail.StockDetailScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,7 +25,8 @@ import com.tumba.bhaga.ui.screens.stockdetail.StockDetailScreen
 fun BhagaNavHost(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestination: String = "login"
 ) {
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect {
@@ -60,9 +59,35 @@ fun BhagaNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = "home",
+        startDestination = startDestination,
         modifier = modifier
     ) {
+        composable("login") {
+            LoginScreen(
+                onNavigateToSignUp = {
+                    navController.navigate("signup")
+                },
+                onLoginSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("signup") {
+            SignUpScreen(
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("signup") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable("home") {
             HomeScreen(
                 scrollBehavior = scrollBehavior,
@@ -72,6 +97,7 @@ fun BhagaNavHost(
                 }
             )
         }
+
         composable("settings") {
             SettingsScreen()
         }
