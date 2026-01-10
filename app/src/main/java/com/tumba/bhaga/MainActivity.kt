@@ -4,38 +4,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.tumba.bhaga.domain.models.StockSummary
 import com.tumba.bhaga.ui.components.BottomAppBar
 import com.tumba.bhaga.ui.components.BottomBarOption
-import com.tumba.bhaga.ui.components.StockSummaryList
 import com.tumba.bhaga.ui.components.TopAppBar
 import com.tumba.bhaga.ui.components.TopBarAction
 import com.tumba.bhaga.ui.navigation.BhagaNavHost
@@ -71,7 +58,13 @@ class MainActivity : ComponentActivity() {
                         onClick = {
                             navController.navigate("home")
                         }
-
+                    ),
+                    BottomBarOption(
+                        label = "Profile",
+                        icon = Icons.Filled.Person,
+                        onClick = {
+                            navController.navigate("profile")
+                        }
                     ),
                     BottomBarOption(
                         label = "Settings",
@@ -86,7 +79,8 @@ class MainActivity : ComponentActivity() {
             val selectedOption = when(currentRoute) {
                 "favourites" -> 0
                 "home" -> 1
-                "settings" -> 2
+                "profile" -> 2
+                "settings" -> 3
                 else -> -1
             }
 
@@ -99,7 +93,7 @@ class MainActivity : ComponentActivity() {
             BhagaTheme {
                 Scaffold(
                     topBar = {
-                        if (currentRoute != "search") {
+                        if (currentRoute != "search" && currentRoute != "login" && currentRoute != "signup") {
                             TopAppBar(
                                 screenTitle = screenTitle,
                                 navigationAction = if (!isHome) {

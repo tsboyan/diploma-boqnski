@@ -6,7 +6,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,6 +14,7 @@ import androidx.navigation.navArgument
 import com.tumba.bhaga.ui.screens.favourites.FavouritesScreen
 import com.tumba.bhaga.ui.screens.home.HomeScreen
 import com.tumba.bhaga.ui.screens.login.LoginScreen
+import com.tumba.bhaga.ui.screens.profile.ProfileScreen
 import com.tumba.bhaga.ui.screens.search.SearchScreen
 import com.tumba.bhaga.ui.screens.settings.SettingsScreen
 import com.tumba.bhaga.ui.screens.signup.SignUpScreen
@@ -94,6 +94,16 @@ fun BhagaNavHost(
                 onStockClick = { ticker: String ->
                     println(ticker)
                     navController.navigate("details/$ticker")
+                }
+            )
+        }
+
+        composable("profile") {
+            ProfileScreen(
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
