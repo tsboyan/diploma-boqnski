@@ -5,8 +5,10 @@ import com.tumba.bhaga.data.local.StockDatabase
 import com.tumba.bhaga.data.local.dao.FavouritesDao
 import com.tumba.bhaga.data.local.dao.InvalidationDao
 import com.tumba.bhaga.data.local.dao.NewsDao
+import com.tumba.bhaga.data.local.dao.PortfolioDao
 import com.tumba.bhaga.data.local.dao.SearchDao
 import com.tumba.bhaga.data.local.dao.StockDao
+import com.tumba.bhaga.data.local.dao.TransactionDao
 import com.tumba.bhaga.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -53,5 +55,15 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(database: StockDatabase): UserDao {
         return database.userDao()
+    }
+
+    @Provides
+    fun providePortfolioDao(database: StockDatabase): PortfolioDao {
+        return database.portfolioDao()
+    }
+
+    @Provides
+    fun provideTransactionDao(database: StockDatabase): TransactionDao {
+        return database.transactionDao()
     }
 }

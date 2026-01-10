@@ -22,4 +22,10 @@ interface UserDao {
 
     @Query("SELECT * FROM user WHERE id = :userId LIMIT 1")
     suspend fun getUserById(userId: Long): UserEntity?
+
+    @Query("UPDATE user SET balance = :newBalance WHERE id = :userId")
+    suspend fun updateBalance(userId: Long, newBalance: Double)
+
+    @Query("SELECT balance FROM user WHERE id = :userId")
+    suspend fun getBalance(userId: Long): Double?
 }

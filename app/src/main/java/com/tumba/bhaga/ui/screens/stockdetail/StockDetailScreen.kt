@@ -1,51 +1,23 @@
 package com.tumba.bhaga.ui.screens.stockdetail
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.tumba.bhaga.ui.components.BuySellDialog
 import com.tumba.bhaga.ui.components.CompanyTag
 import com.tumba.bhaga.ui.components.PercentChangeBadge
 import com.tumba.bhaga.ui.components.StockNewsList
@@ -58,22 +30,40 @@ fun StockDetailScreen(
 ) {
     val stock by viewModel.stock.collectAsState()
     val isFavourite by viewModel.isFavourite.collectAsState()
+    val userBalance by viewModel.userBalance.collectAsState()
+    val ownedShares by viewModel.ownedShares.collectAsState()
+    val transactionSuccess by viewModel.transactionSuccess.collectAsState()
+    val transactionError by viewModel.transactionError.collectAsState()
+
+    var showBuyDialog by remember { mutableStateOf(false) }
+    var showSellDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(ticker) {
         viewModel.loadStock(ticker)
+    }
+
+    // Show success/error snackbars
+    LaunchedEffect(transactionSuccess, transactionError) {
+        transactionSuccess?.let {
+            // Success message shown
+            viewModel.clearTransactionMessages()
+        }
+        transactionError?.let {
+            // Error message shown
+            viewModel.clearTransactionMessages()
+        }
     }
 
     if (stock == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-    }
-    else {
+    } else {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,24 +127,22 @@ fun StockDetailScreen(
 
                             Text(
                                 "${if (stock!!.isPositiveChange) "+" else "-"}${
-                                    " $%.2f".format(
-                                        abs(
-                                            stock!!.priceChange
-                                        )
-                                    )
+                                    " $%.2f".format(abs(stock!!.priceChange))
                                 }",
-                                color = Color(when (stock!!.isPositiveChange) {
-                                    true -> ColorUtils.blendARGB(
-                                        Color.Green.toArgb(),
-                                        Color.Black.toArgb(),
-                                        0.4f
-                                    )
-                                    false -> ColorUtils.blendARGB(
-                                        Color.Red.toArgb(),
-                                        Color.Black.toArgb(),
-                                        0.2f
-                                    )
-                                }),
+                                color = Color(
+                                    when (stock!!.isPositiveChange) {
+                                        true -> ColorUtils.blendARGB(
+                                            Color.Green.toArgb(),
+                                            Color.Black.toArgb(),
+                                            0.4f
+                                        )
+                                        false -> ColorUtils.blendARGB(
+                                            Color.Red.toArgb(),
+                                            Color.Black.toArgb(),
+                                            0.2f
+                                        )
+                                    }
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium
                             )
@@ -168,6 +156,57 @@ fun StockDetailScreen(
                     }
                 }
 
+                // Buy/Sell Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = { showBuyDialog = true },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Buy")
+                    }
+
+                    Button(
+                        onClick = { showSellDialog = true },
+                        modifier = Modifier.weight(1f),
+                        enabled = ownedShares > 0,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Sell")
+                    }
+                }
+
+                // Portfolio Info Card
+                if (ownedShares > 0) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                "Your Position",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            InfoRow("Owned Shares", ownedShares.toString())
+                            InfoRow(
+                                "Current Value",
+                                "$${"%.2f".format(ownedShares * stock!!.currentPrice)}"
+                            )
+                        }
+                    }
+                }
 
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -199,13 +238,67 @@ fun StockDetailScreen(
 
             StockNewsList(stock!!.newsList, modifier = Modifier.padding(vertical = 0.dp))
         }
+
+        // Buy Dialog
+        if (showBuyDialog) {
+            BuySellDialog(
+                isBuy = true,
+                ticker = stock!!.ticker,
+                companyName = stock!!.companyName,
+                currentPrice = stock!!.currentPrice,
+                currentBalance = userBalance,
+                ownedShares = ownedShares,
+                onDismiss = { showBuyDialog = false },
+                onConfirm = { quantity ->
+                    viewModel.buyStock(quantity)
+                    showBuyDialog = false
+                }
+            )
+        }
+
+        // Sell Dialog
+        if (showSellDialog) {
+            BuySellDialog(
+                isBuy = false,
+                ticker = stock!!.ticker,
+                companyName = stock!!.companyName,
+                currentPrice = stock!!.currentPrice,
+                currentBalance = userBalance,
+                ownedShares = ownedShares,
+                onDismiss = { showSellDialog = false },
+                onConfirm = { quantity ->
+                    viewModel.sellStock(quantity)
+                    showSellDialog = false
+                }
+            )
+        }
+
+        // Show transaction messages
+        transactionSuccess?.let { message ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(message)
+            }
+        }
+
+        transactionError?.let { message ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.error
+            ) {
+                Text(message)
+            }
+        }
     }
 }
 
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
