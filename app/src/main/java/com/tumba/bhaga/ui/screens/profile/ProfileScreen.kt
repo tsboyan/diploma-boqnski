@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,7 +27,7 @@ fun ProfileScreen(
 ) {
     val user by viewModel.user.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val portfolio by viewModel.portfolio.collectAsState()
+    val portfolioWithPrices by viewModel.portfolioWithPrices.collectAsState()
 
     LaunchedEffect(viewModel.logoutSuccess.collectAsState().value) {
         if (viewModel.logoutSuccess.value) {
@@ -56,7 +57,6 @@ fun ProfileScreen(
 
             HorizontalDivider()
 
-            // User Info Section
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ProfileInfoRow(
                     icon = Icons.Default.Person,
@@ -80,14 +80,13 @@ fun ProfileScreen(
 
             HorizontalDivider()
 
-            // Portfolio Section
             Text(
                 text = "Portfolio",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
-            if (portfolio.isEmpty()) {
+            if (portfolioWithPrices.isEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -112,12 +111,13 @@ fun ProfileScreen(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(portfolio) { item ->
+                    items(portfolioWithPrices) { item ->
                         PortfolioItemCard(
                             ticker = item.ticker,
                             companyName = item.companyName,
                             quantity = item.quantity,
-                            averagePrice = item.averagePrice
+                            averagePrice = item.averagePrice,
+                            currentPrice = item.currentPrice
                         )
                     }
                 }
@@ -188,12 +188,26 @@ private fun PortfolioItemCard(
     ticker: String,
     companyName: String,
     quantity: Int,
-    averagePrice: Double
+    averagePrice: Double,
+    currentPrice: Double
 ) {
+    val totalInvested = quantity * averagePrice
+    val currentValue = quantity * currentPrice
+    val profitLoss = currentValue - totalInvested
+    val profitLossPercent = ((currentValue - totalInvested) / totalInvested) * 100
+    val isProfitable = profitLoss >= 0
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isProfitable) {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            }
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -223,34 +237,89 @@ private fun PortfolioItemCard(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Avg: $${"%.2f".format(averagePrice)}",
+                        text = "$${"%.2f".format(currentPrice)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
+            Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider()
-
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column {
+                    Text(
+                        text = "Avg Price:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "$${"%.2f".format(averagePrice)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Invested:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "$${"%.2f".format(totalInvested)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "Current:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "$${"%.2f".format(currentValue)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = "Total Investment:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Profit/Loss:",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "$${"%.2f".format(quantity * averagePrice)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${if (isProfitable) "+" else ""}$${"%.2f".format(profitLoss)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isProfitable) Color(0xFF4CAF50) else Color(0xFFF44336)
+                    )
+                    Text(
+                        text = "${if (isProfitable) "+" else ""}${"%.2f".format(profitLossPercent)}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isProfitable) Color(0xFF4CAF50) else Color(0xFFF44336)
+                    )
+                }
             }
         }
     }

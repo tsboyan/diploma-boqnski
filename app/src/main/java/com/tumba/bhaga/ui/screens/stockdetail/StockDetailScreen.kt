@@ -32,6 +32,7 @@ fun StockDetailScreen(
     val isFavourite by viewModel.isFavourite.collectAsState()
     val userBalance by viewModel.userBalance.collectAsState()
     val ownedShares by viewModel.ownedShares.collectAsState()
+    val averagePrice by viewModel.averagePrice.collectAsState()
     val transactionSuccess by viewModel.transactionSuccess.collectAsState()
     val transactionError by viewModel.transactionError.collectAsState()
 
@@ -42,14 +43,11 @@ fun StockDetailScreen(
         viewModel.loadStock(ticker)
     }
 
-    // Show success/error snackbars
     LaunchedEffect(transactionSuccess, transactionError) {
         transactionSuccess?.let {
-            // Success message shown
             viewModel.clearTransactionMessages()
         }
         transactionError?.let {
-            // Error message shown
             viewModel.clearTransactionMessages()
         }
     }
@@ -59,6 +57,16 @@ fun StockDetailScreen(
             CircularProgressIndicator()
         }
     } else {
+        // Calculate profit/loss
+        val currentPrice = stock!!.currentPrice
+        val totalInvested = ownedShares * averagePrice
+        val currentValue = ownedShares * currentPrice
+        val profitLoss = currentValue - totalInvested
+        val profitLossPercent = if (totalInvested > 0) {
+            ((currentValue - totalInvested) / totalInvested) * 100
+        } else 0.0
+        val isProfitable = profitLoss >= 0
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -156,7 +164,6 @@ fun StockDetailScreen(
                     }
                 }
 
-                // Buy/Sell Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -183,12 +190,15 @@ fun StockDetailScreen(
                     }
                 }
 
-                // Portfolio Info Card
                 if (ownedShares > 0) {
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            containerColor = if (isProfitable) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.errorContainer
+                            }
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -198,12 +208,47 @@ fun StockDetailScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(12.dp))
+
                             InfoRow("Owned Shares", ownedShares.toString())
-                            InfoRow(
-                                "Current Value",
-                                "$${"%.2f".format(ownedShares * stock!!.currentPrice)}"
-                            )
+                            InfoRow("Average Price", "$${"%.2f".format(averagePrice)}")
+                            InfoRow("Total Invested", "$${"%.2f".format(totalInvested)}")
+                            InfoRow("Current Value", "$${"%.2f".format(currentValue)}")
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Profit/Loss:",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        "${if (isProfitable) "+" else ""}$${"%.2f".format(profitLoss)}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isProfitable) {
+                                            Color(0xFF4CAF50)
+                                        } else {
+                                            Color(0xFFF44336)
+                                        }
+                                    )
+                                    Text(
+                                        "${if (isProfitable) "+" else ""}${"%.2f".format(profitLossPercent)}%",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (isProfitable) {
+                                            Color(0xFF4CAF50)
+                                        } else {
+                                            Color(0xFFF44336)
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -239,7 +284,6 @@ fun StockDetailScreen(
             StockNewsList(stock!!.newsList, modifier = Modifier.padding(vertical = 0.dp))
         }
 
-        // Buy Dialog
         if (showBuyDialog) {
             BuySellDialog(
                 isBuy = true,
@@ -248,6 +292,7 @@ fun StockDetailScreen(
                 currentPrice = stock!!.currentPrice,
                 currentBalance = userBalance,
                 ownedShares = ownedShares,
+                averagePrice = averagePrice,
                 onDismiss = { showBuyDialog = false },
                 onConfirm = { quantity ->
                     viewModel.buyStock(quantity)
@@ -256,7 +301,6 @@ fun StockDetailScreen(
             )
         }
 
-        // Sell Dialog
         if (showSellDialog) {
             BuySellDialog(
                 isBuy = false,
@@ -265,6 +309,7 @@ fun StockDetailScreen(
                 currentPrice = stock!!.currentPrice,
                 currentBalance = userBalance,
                 ownedShares = ownedShares,
+                averagePrice = averagePrice,
                 onDismiss = { showSellDialog = false },
                 onConfirm = { quantity ->
                     viewModel.sellStock(quantity)
@@ -273,7 +318,6 @@ fun StockDetailScreen(
             )
         }
 
-        // Show transaction messages
         transactionSuccess?.let { message ->
             Snackbar(
                 modifier = Modifier.padding(16.dp)

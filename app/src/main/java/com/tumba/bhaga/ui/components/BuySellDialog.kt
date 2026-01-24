@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -19,6 +20,7 @@ fun BuySellDialog(
     currentPrice: Double,
     currentBalance: Double,
     ownedShares: Int,
+    averagePrice: Double,
     onDismiss: () -> Unit,
     onConfirm: (quantity: Int) -> Unit
 ) {
@@ -31,6 +33,18 @@ fun BuySellDialog(
     } else {
         quantityInt > 0 && quantityInt <= ownedShares
     }
+
+    // Calculate potential profit/loss for selling
+    val potentialProceeds = if (!isBuy && quantityInt > 0) {
+        quantityInt * currentPrice
+    } else 0.0
+
+    val costBasis = if (!isBuy && quantityInt > 0) {
+        quantityInt * averagePrice
+    } else 0.0
+
+    val potentialProfitLoss = potentialProceeds - costBasis
+    val isProfitable = potentialProfitLoss >= 0
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -62,6 +76,7 @@ fun BuySellDialog(
                     InfoRow("Your Balance", "$${"%.2f".format(currentBalance)}")
                     if (!isBuy) {
                         InfoRow("Owned Shares", ownedShares.toString())
+                        InfoRow("Average Price", "$${"%.2f".format(averagePrice)}")
                     }
                 }
 
@@ -80,21 +95,60 @@ fun BuySellDialog(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     ) {
-                        Row(
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Text(
-                                "Total ${if (isBuy) "Cost" else "Proceeds"}:",
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                "$${"%.2f".format(totalCost)}",
-                                fontWeight = FontWeight.Bold,
-                                color = if (isBuy) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Total ${if (isBuy) "Cost" else "Proceeds"}:",
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    "$${"%.2f".format(totalCost)}",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isBuy) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                )
+                            }
+
+                            // Show profit/loss for selling
+                            if (!isBuy) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        "Cost Basis:",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        "$${"%.2f".format(costBasis)}",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "Profit/Loss:",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "${if (isProfitable) "+" else ""}$${"%.2f".format(potentialProfitLoss)}",
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isProfitable) Color(0xFF4CAF50) else Color(0xFFF44336)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

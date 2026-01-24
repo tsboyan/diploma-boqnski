@@ -33,6 +33,9 @@ class StockDetailViewModel @Inject constructor(
     private val _ownedShares = MutableStateFlow(0)
     val ownedShares: StateFlow<Int> = _ownedShares
 
+    private val _averagePrice = MutableStateFlow(0.0)
+    val averagePrice: StateFlow<Double> = _averagePrice
+
     private val _transactionSuccess = MutableStateFlow<String?>(null)
     val transactionSuccess: StateFlow<String?> = _transactionSuccess
 
@@ -44,7 +47,6 @@ class StockDetailViewModel @Inject constructor(
             _stock.value = repository.getStockDetail(ticker)
             _isFavourite.value = favouritesRepository.checkFavourite(ticker)
 
-            // Load user's balance and owned shares
             val userId = authRepository.getCurrentUserId()
             if (userId != null) {
                 val user = authRepository.getCurrentUser()
@@ -52,6 +54,7 @@ class StockDetailViewModel @Inject constructor(
 
                 val portfolio = tradingRepository.getPortfolioItem(userId, ticker)
                 _ownedShares.value = portfolio?.quantity ?: 0
+                _averagePrice.value = portfolio?.averagePrice ?: 0.0
             }
         }
     }
@@ -91,7 +94,7 @@ class StockDetailViewModel @Inject constructor(
                 result.fold(
                     onSuccess = {
                         _transactionSuccess.value = "Successfully bought $quantity shares"
-                        loadStock(stockDetail.ticker) // Reload to update balance and shares
+                        loadStock(stockDetail.ticker)
                     },
                     onFailure = { error ->
                         _transactionError.value = error.message ?: "Transaction failed"
@@ -118,7 +121,7 @@ class StockDetailViewModel @Inject constructor(
                 result.fold(
                     onSuccess = {
                         _transactionSuccess.value = "Successfully sold $quantity shares"
-                        loadStock(stockDetail.ticker) // Reload to update balance and shares
+                        loadStock(stockDetail.ticker)
                     },
                     onFailure = { error ->
                         _transactionError.value = error.message ?: "Transaction failed"
