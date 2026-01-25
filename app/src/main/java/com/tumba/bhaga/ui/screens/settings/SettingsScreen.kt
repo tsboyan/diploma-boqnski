@@ -1,40 +1,20 @@
 package com.tumba.bhaga.ui.screens.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import com.tumba.bhaga.ui.screens.stockdetail.StockDetailViewModel
+import com.tumba.bhaga.data.local.ThemeMode
 
 @Composable
 fun SettingsScreen(
@@ -47,6 +27,8 @@ fun SettingsScreen(
     val tokenInitial by viewModel.tokenInitial.collectAsState()
     var token by remember { mutableStateOf("") }
 
+    val currentThemeMode by viewModel.themeMode.collectAsState()
+
     LaunchedEffect(tokenInitial) {
         token = tokenInitial
     }
@@ -57,6 +39,62 @@ fun SettingsScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+        // Theme Section
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Appearance", style = MaterialTheme.typography.titleMedium)
+
+            Column(
+                modifier = Modifier.selectableGroup(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ThemeMode.entries.forEach { mode ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = currentThemeMode == mode,
+                                onClick = { viewModel.setThemeMode(mode) },
+                                role = Role.RadioButton
+                            )
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentThemeMode == mode,
+                            onClick = null
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = when (mode) {
+                                    ThemeMode.LIGHT -> "Light Mode"
+                                    ThemeMode.DARK -> "Dark Mode"
+                                    ThemeMode.SYSTEM -> "System Default"
+                                },
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = when (mode) {
+                                    ThemeMode.LIGHT -> "Always use light theme"
+                                    ThemeMode.DARK -> "Always use dark theme"
+                                    ThemeMode.SYSTEM -> "Follow system settings"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
+
+        // Cache Management Section
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Cache Management", style = MaterialTheme.typography.titleMedium)
 
@@ -73,6 +111,7 @@ fun SettingsScreen(
             color = DividerDefaults.color
         )
 
+        // API Token Section
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("API Token", style = MaterialTheme.typography.titleMedium)
 
@@ -84,7 +123,7 @@ fun SettingsScreen(
                 singleLine = true
             )
 
-            Row() {
+            Row {
                 Spacer(Modifier.weight(1f))
 
                 Button(
@@ -109,8 +148,7 @@ fun SettingsScreen(
                         viewModel.checkTokenValidity(token)
                         if (isTokenValid == true) {
                             viewModel.setNewToken(token)
-                        }
-                        else {
+                        } else {
                             Toast.makeText(
                                 context,
                                 "Invalid token",

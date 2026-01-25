@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,12 +16,15 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.tumba.bhaga.data.local.ThemeManager
+import com.tumba.bhaga.data.local.ThemeMode
 import com.tumba.bhaga.ui.components.BottomAppBar
 import com.tumba.bhaga.ui.components.BottomBarOption
 import com.tumba.bhaga.ui.components.TopAppBar
@@ -28,20 +32,36 @@ import com.tumba.bhaga.ui.components.TopBarAction
 import com.tumba.bhaga.ui.navigation.BhagaNavHost
 import com.tumba.bhaga.ui.theme.BhagaTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var themeManager: ThemeManager
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-
             val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+            // Collect theme mode
+            val themeMode by themeManager.themeMode.collectAsState(
+                initial = runBlocking { themeManager.themeMode.first() }
+            )
+
+            val darkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
 
             val navOption = remember {
                 mutableStateListOf(
@@ -90,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 ?.replaceFirstChar { it.uppercaseChar() }
                 ?: "Unknown"
 
-            BhagaTheme {
+            BhagaTheme(darkTheme = darkTheme) {
                 Scaffold(
                     topBar = {
                         if (currentRoute != "search" && currentRoute != "login" && currentRoute != "signup") {

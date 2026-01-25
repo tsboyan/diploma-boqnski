@@ -104,6 +104,9 @@ fun BhagaNavHost(
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onStockClick = { ticker: String ->
+                    navController.navigate("details/$ticker")
                 }
             )
         }

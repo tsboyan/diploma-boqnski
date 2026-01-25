@@ -1,5 +1,6 @@
 package com.tumba.bhaga.ui.screens.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
+    onStockClick: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val user by viewModel.user.collectAsState()
@@ -117,7 +119,8 @@ fun ProfileScreen(
                             companyName = item.companyName,
                             quantity = item.quantity,
                             averagePrice = item.averagePrice,
-                            currentPrice = item.currentPrice
+                            currentPrice = item.currentPrice,
+                            onClick = { onStockClick(item.ticker) }
                         )
                     }
                 }
@@ -189,7 +192,8 @@ private fun PortfolioItemCard(
     companyName: String,
     quantity: Int,
     averagePrice: Double,
-    currentPrice: Double
+    currentPrice: Double,
+    onClick: () -> Unit
 ) {
     val totalInvested = quantity * averagePrice
     val currentValue = quantity * currentPrice
@@ -198,7 +202,9 @@ private fun PortfolioItemCard(
     val isProfitable = profitLoss >= 0
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(
