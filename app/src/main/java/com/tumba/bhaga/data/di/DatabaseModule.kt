@@ -2,14 +2,7 @@ package com.tumba.bhaga.data.di
 
 import android.content.Context
 import com.tumba.bhaga.data.local.StockDatabase
-import com.tumba.bhaga.data.local.dao.FavouritesDao
-import com.tumba.bhaga.data.local.dao.InvalidationDao
-import com.tumba.bhaga.data.local.dao.NewsDao
-import com.tumba.bhaga.data.local.dao.PortfolioDao
-import com.tumba.bhaga.data.local.dao.SearchDao
-import com.tumba.bhaga.data.local.dao.StockDao
-import com.tumba.bhaga.data.local.dao.TransactionDao
-import com.tumba.bhaga.data.local.dao.UserDao
+import com.tumba.bhaga.data.local.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -65,5 +58,10 @@ object DatabaseModule {
     @Provides
     fun provideTransactionDao(database: StockDatabase): TransactionDao {
         return database.transactionDao()
+    }
+
+    @Provides
+    fun provideBlockedStockDao(database: StockDatabase): BlockedStockDao {
+        return database.blockedStockDao()
     }
 }

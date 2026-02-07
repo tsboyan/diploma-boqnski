@@ -15,4 +15,7 @@ interface TransactionDao {
 
     @Query("SELECT * FROM `transaction` WHERE userId = :userId AND ticker = :ticker ORDER BY timestamp DESC")
     suspend fun getTransactionsForStock(userId: Long, ticker: String): List<TransactionEntity>
+
+    @Query("SELECT * FROM `transaction` ORDER BY timestamp DESC")
+    suspend fun getAllTransactions(): List<TransactionEntity>
 }

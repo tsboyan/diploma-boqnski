@@ -13,6 +13,13 @@ class AuthRepository @Inject constructor(
 ) {
     private var currentUserId: Long? = null
 
+    companion object {
+        private val ADMIN_EMAILS = setOf(
+            "admin@bhaga.com",
+            "superadmin@bhaga.com"
+        )
+    }
+
     suspend fun signUp(name: String, email: String, password: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -57,6 +64,13 @@ class AuthRepository @Inject constructor(
     suspend fun getCurrentUser(): UserEntity? {
         return withContext(Dispatchers.IO) {
             currentUserId?.let { userDao.getUserById(it) }
+        }
+    }
+
+    suspend fun isCurrentUserAdmin(): Boolean {
+        return withContext(Dispatchers.IO) {
+            val user = getCurrentUser()
+            user?.email in ADMIN_EMAILS
         }
     }
 

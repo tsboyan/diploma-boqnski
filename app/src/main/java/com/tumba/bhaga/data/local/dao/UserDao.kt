@@ -28,4 +28,7 @@ interface UserDao {
 
     @Query("SELECT balance FROM user WHERE id = :userId")
     suspend fun getBalance(userId: Long): Double?
+
+    @Query("SELECT * FROM user ORDER BY createdAt DESC")
+    suspend fun getAllUsers(): List<UserEntity>
 }

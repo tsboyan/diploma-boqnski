@@ -11,6 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.tumba.bhaga.ui.screens.admin.AdminPanelScreen
 import com.tumba.bhaga.ui.screens.favourites.FavouritesScreen
 import com.tumba.bhaga.ui.screens.home.HomeScreen
 import com.tumba.bhaga.ui.screens.login.LoginScreen
@@ -92,7 +93,6 @@ fun BhagaNavHost(
             HomeScreen(
                 scrollBehavior = scrollBehavior,
                 onStockClick = { ticker: String ->
-                    println(ticker)
                     navController.navigate("details/$ticker")
                 }
             )
@@ -111,6 +111,10 @@ fun BhagaNavHost(
             )
         }
 
+        composable("admin") {
+            AdminPanelScreen()
+        }
+
         composable("settings") {
             SettingsScreen()
         }
@@ -119,7 +123,6 @@ fun BhagaNavHost(
             FavouritesScreen(
                 scrollBehavior = scrollBehavior,
                 onStockClick = { ticker: String ->
-                    println(ticker)
                     navController.navigate("details/$ticker")
                 }
             )

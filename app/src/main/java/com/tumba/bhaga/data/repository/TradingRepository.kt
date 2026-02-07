@@ -1,5 +1,6 @@
 package com.tumba.bhaga.data.repository
 
+import com.tumba.bhaga.data.local.dao.BlockedStockDao
 import com.tumba.bhaga.data.local.dao.PortfolioDao
 import com.tumba.bhaga.data.local.dao.TransactionDao
 import com.tumba.bhaga.data.local.dao.UserDao
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 class TradingRepository @Inject constructor(
     private val userDao: UserDao,
     private val portfolioDao: PortfolioDao,
-    private val transactionDao: TransactionDao
+    private val transactionDao: TransactionDao,
+    private val blockedStockDao: BlockedStockDao
 ) {
     suspend fun buyStock(
         userId: Long,
@@ -25,6 +27,11 @@ class TradingRepository @Inject constructor(
         pricePerShare: Double
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            // Check if stock is blocked
+            if (blockedStockDao.isStockBlocked(ticker)) {
+                return@withContext Result.failure(Exception("This stock is currently blocked from trading"))
+            }
+
             val totalCost = quantity * pricePerShare
             val currentBalance = userDao.getBalance(userId) ?: 0.0
 
@@ -32,10 +39,8 @@ class TradingRepository @Inject constructor(
                 return@withContext Result.failure(Exception("Insufficient funds"))
             }
 
-            // Deduct balance
             userDao.updateBalance(userId, currentBalance - totalCost)
 
-            // Update or create portfolio entry
             val existingPortfolio = portfolioDao.getPortfolioItem(userId, ticker)
             if (existingPortfolio != null) {
                 val totalQuantity = existingPortfolio.quantity + quantity
@@ -61,7 +66,6 @@ class TradingRepository @Inject constructor(
                 )
             }
 
-            // Record transaction
             transactionDao.insertTransaction(
                 TransactionEntity(
                     userId = userId,
@@ -88,6 +92,11 @@ class TradingRepository @Inject constructor(
         pricePerShare: Double
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            // Check if stock is blocked
+            if (blockedStockDao.isStockBlocked(ticker)) {
+                return@withContext Result.failure(Exception("This stock is currently blocked from trading"))
+            }
+
             val portfolio = portfolioDao.getPortfolioItem(userId, ticker)
                 ?: return@withContext Result.failure(Exception("You don't own this stock"))
 
@@ -98,10 +107,8 @@ class TradingRepository @Inject constructor(
             val totalProceeds = quantity * pricePerShare
             val currentBalance = userDao.getBalance(userId) ?: 0.0
 
-            // Add balance
             userDao.updateBalance(userId, currentBalance + totalProceeds)
 
-            // Update portfolio
             val newQuantity = portfolio.quantity - quantity
             if (newQuantity == 0) {
                 portfolioDao.deletePortfolioItem(userId, ticker)
@@ -114,7 +121,6 @@ class TradingRepository @Inject constructor(
                 )
             }
 
-            // Record transaction
             transactionDao.insertTransaction(
                 TransactionEntity(
                     userId = userId,

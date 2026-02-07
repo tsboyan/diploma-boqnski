@@ -5,22 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.tumba.bhaga.data.local.dao.FavouritesDao
-import com.tumba.bhaga.data.local.dao.InvalidationDao
-import com.tumba.bhaga.data.local.dao.NewsDao
-import com.tumba.bhaga.data.local.dao.PortfolioDao
-import com.tumba.bhaga.data.local.dao.SearchDao
-import com.tumba.bhaga.data.local.dao.StockDao
-import com.tumba.bhaga.data.local.dao.TransactionDao
-import com.tumba.bhaga.data.local.dao.UserDao
-import com.tumba.bhaga.data.local.entity.CompanyNewsEntity
-import com.tumba.bhaga.data.local.entity.CompanyProfileEntity
-import com.tumba.bhaga.data.local.entity.FavouriteEntity
-import com.tumba.bhaga.data.local.entity.PortfolioEntity
-import com.tumba.bhaga.data.local.entity.QuoteEntity
-import com.tumba.bhaga.data.local.entity.SearchEntryEntity
-import com.tumba.bhaga.data.local.entity.TransactionEntity
-import com.tumba.bhaga.data.local.entity.UserEntity
+import com.tumba.bhaga.data.local.dao.*
+import com.tumba.bhaga.data.local.entity.*
 import java.io.FileOutputStream
 
 @Database(
@@ -32,28 +18,23 @@ import java.io.FileOutputStream
         SearchEntryEntity::class,
         UserEntity::class,
         PortfolioEntity::class,
-        TransactionEntity::class
+        TransactionEntity::class,
+        BlockedStockEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(TransactionTypeConverter::class)
 abstract class StockDatabase : RoomDatabase() {
     abstract fun stockDao(): StockDao
-
     abstract fun favouritesDao(): FavouritesDao
-
     abstract fun invalidationDao(): InvalidationDao
-
     abstract fun newsDao(): NewsDao
-
     abstract fun searchDao(): SearchDao
-
     abstract fun userDao(): UserDao
-
     abstract fun portfolioDao(): PortfolioDao
-
     abstract fun transactionDao(): TransactionDao
+    abstract fun blockedStockDao(): BlockedStockDao
 
     companion object {
         @Volatile private var INSTANCE: StockDatabase? = null
@@ -75,7 +56,6 @@ abstract class StockDatabase : RoomDatabase() {
 
         private val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
             override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
-                // Add balance column if upgrading from version 2 without it
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS user_new (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -95,7 +75,6 @@ abstract class StockDatabase : RoomDatabase() {
                 database.execSQL("DROP TABLE user")
                 database.execSQL("ALTER TABLE user_new RENAME TO user")
 
-                // Create portfolio table
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS portfolio (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -112,7 +91,6 @@ abstract class StockDatabase : RoomDatabase() {
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_portfolio_userId ON portfolio(userId)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_portfolio_ticker ON portfolio(ticker)")
 
-                // Create transaction table
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS `transaction` (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -130,6 +108,19 @@ abstract class StockDatabase : RoomDatabase() {
 
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_userId ON `transaction`(userId)")
                 database.execSQL("CREATE INDEX IF NOT EXISTS index_transaction_ticker ON `transaction`(ticker)")
+            }
+        }
+
+        private val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS blocked_stocks (
+                        ticker TEXT PRIMARY KEY NOT NULL,
+                        reason TEXT NOT NULL,
+                        blockedAt INTEGER NOT NULL,
+                        blockedBy TEXT NOT NULL
+                    )
+                """.trimIndent())
             }
         }
 
@@ -153,7 +144,7 @@ abstract class StockDatabase : RoomDatabase() {
                     dbName
                 )
                     .createFromFile(dbPath)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
 
                 INSTANCE = instance
