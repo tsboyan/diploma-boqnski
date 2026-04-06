@@ -36,7 +36,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `buyStock with sufficient funds should succeed`() = runTest {
+    fun buyStockwithsufficientfundsshouldsucceed() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -62,7 +62,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `buyStock with insufficient funds should fail`() = runTest {
+    fun buyStockwithinsufficientfundsshouldfail() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -84,7 +84,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `buyStock with blocked stock should fail`() = runTest {
+    fun buyStockwithblockedstockshouldfail() = runTest {
         // Given
         val userId = 1L
         val ticker = "TSLA"
@@ -101,7 +101,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `buyStock when user owns stock should update average price`() = runTest {
+    fun buyStockwhenuserownsstockshouldupdateaverageprice() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -148,7 +148,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `sellStock with sufficient shares should succeed`() = runTest {
+    fun sellStockwithsufficientsharesshouldsucceed() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -189,7 +189,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `sellStock with insufficient shares should fail`() = runTest {
+    fun sellStockwithinsufficientsharesshouldfail() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -218,7 +218,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `sellStock when selling all shares should delete portfolio item`() = runTest {
+    fun sellStockwhensellingallsharesshoulddeleteportfolioitem() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"
@@ -251,7 +251,7 @@ class TradingRepositoryTest {
     }
 
     @Test
-    fun `sellStock when user doesn't own stock should fail`() = runTest {
+    fun sellStockwhenuserdoesntownstockshouldfail() = runTest {
         // Given
         val userId = 1L
         val ticker = "AAPL"

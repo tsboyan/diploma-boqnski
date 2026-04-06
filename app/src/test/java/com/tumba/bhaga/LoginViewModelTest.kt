@@ -39,7 +39,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `initial state should be empty and not loading`() = runTest {
+    fun initialstateshouldbeemptyandnotloading() = runTest {
         assertEquals("", viewModel.email.value)
         assertEquals("", viewModel.password.value)
         assertFalse(viewModel.isLoading.value)
@@ -48,7 +48,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `onEmailChange should update email state`() = runTest {
+    fun onEmailChangeshouldupdateemailstate() = runTest {
         // When
         viewModel.onEmailChange("test@example.com")
 
@@ -58,7 +58,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `onPasswordChange should update password state`() = runTest {
+    fun onPasswordChangeshouldupdatepasswordstate() = runTest {
         // When
         viewModel.onPasswordChange("password123")
 
@@ -68,7 +68,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `togglePasswordVisibility should toggle visibility state`() = runTest {
+    fun togglePasswordVisibilityshouldtogglevisibilitystate() = runTest {
         // Given
         assertFalse(viewModel.isPasswordVisible.value)
 
@@ -86,7 +86,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with empty email should show error`() = runTest {
+    fun loginwithemptyemailshouldshowerror() = runTest {
         // Given
         viewModel.onPasswordChange("password")
 
@@ -101,7 +101,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with empty password should show error`() = runTest {
+    fun loginwithemptypasswordshouldshowerror() = runTest {
         // Given
         viewModel.onEmailChange("test@example.com")
 
@@ -116,7 +116,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with valid credentials should succeed`() = runTest {
+    fun loginwithvalidcredentialsshouldsucceed() = runTest {
         // Given
         viewModel.onEmailChange("test@example.com")
         viewModel.onPasswordChange("password123")
@@ -134,7 +134,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with invalid credentials should show error`() = runTest {
+    fun loginwithinvalidcredentialsshouldshowerror() = runTest {
         // Given
         viewModel.onEmailChange("test@example.com")
         viewModel.onPasswordChange("wrongpassword")
@@ -151,7 +151,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login with exception should show error message`() = runTest {
+    fun loginwithexceptionshouldshowerrormessage() = runTest {
         // Given
         viewModel.onEmailChange("test@example.com")
         viewModel.onPasswordChange("password123")
@@ -168,7 +168,7 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun `login should set loading state correctly`() = runTest {
+    fun loginshouldsetloadingstatecorrectly() = runTest {
         // Given
         viewModel.onEmailChange("test@example.com")
         viewModel.onPasswordChange("password123")

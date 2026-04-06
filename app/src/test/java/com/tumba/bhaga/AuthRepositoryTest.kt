@@ -28,7 +28,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `signUp with new email should create user and return true`() = runTest {
+    fun signUpwithnewemailshouldcreateuserandreturntrue() = runTest {
         // Given
         val name = "Test User"
         val email = "test@example.com"
@@ -49,7 +49,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `signUp with existing email should throw exception`() = runTest {
+    fun signUpwithexistingemailshouldthrowexception() = runTest {
         // Given
         val email = "existing@example.com"
         coEvery { userDao.emailExists(email) } returns true
@@ -67,7 +67,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `login with valid credentials should return true`() = runTest {
+    fun loginwithvalidcredentialsshouldreturntrue() = runTest {
         // Given
         val email = "user@example.com"
         val password = "password123"
@@ -89,7 +89,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `login with invalid credentials should return false`() = runTest {
+    fun loginwithinvalidcredentialsshouldreturnfalse() = runTest {
         // Given
         val email = "user@example.com"
         val password = "wrongpassword"
@@ -105,7 +105,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `isCurrentUserAdmin should return true for admin email`() = runTest {
+    fun isCurrentUserAdminshouldreturntrueforadminemail() = runTest {
         // Given
         val adminUser = UserEntity(
             id = 1L,
@@ -127,7 +127,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `isCurrentUserAdmin should return false for regular user`() = runTest {
+    fun isCurrentUserAdminshouldreturnfalseforregularuser() = runTest {
         // Given
         val regularUser = UserEntity(
             id = 1L,
@@ -149,7 +149,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `logout should clear current user`() = runTest {
+    fun logoutshouldclearcurrentuser() = runTest {
         // Given
         val user = UserEntity(1L, "Test", "test@example.com", "password")
         coEvery { userDao.login(any(), any()) } returns user
@@ -164,7 +164,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `getCurrentUser should return user when logged in`() = runTest {
+    fun getCurrentUsershouldreturnuserwhenloggedin() = runTest {
         // Given
         val user = UserEntity(1L, "Test", "test@example.com", "password")
         coEvery { userDao.login(any(), any()) } returns user
@@ -181,7 +181,7 @@ class AuthRepositoryTest {
     }
 
     @Test
-    fun `getCurrentUser should return null when not logged in`() = runTest {
+    fun getCurrentUsershouldreturnnullwhennotloggedin() = runTest {
         // When
         val result = repository.getCurrentUser()
 
