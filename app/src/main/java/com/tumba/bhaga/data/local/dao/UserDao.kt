@@ -14,14 +14,15 @@ interface UserDao {
     @Query("SELECT * FROM user WHERE email = :email LIMIT 1")
     suspend fun getUserByEmail(email: String): UserEntity?
 
-    @Query("SELECT * FROM user WHERE email = :email AND password = :password LIMIT 1")
-    suspend fun login(email: String, password: String): UserEntity?
-
     @Query("SELECT EXISTS(SELECT 1 FROM user WHERE email = :email)")
     suspend fun emailExists(email: String): Boolean
 
     @Query("SELECT * FROM user WHERE id = :userId LIMIT 1")
     suspend fun getUserById(userId: Long): UserEntity?
+
+    // Used for password migration - updates plain text password to hashed version
+    @Query("UPDATE user SET password = :newPassword WHERE id = :userId")
+    suspend fun updatePassword(userId: Long, newPassword: String)
 
     @Query("UPDATE user SET balance = :newBalance WHERE id = :userId")
     suspend fun updateBalance(userId: Long, newBalance: Double)

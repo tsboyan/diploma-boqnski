@@ -1,6 +1,7 @@
 [versions]
 agp = "8.11.1"
 annotations = "26.0.2"
+bcrypt = "0.10.1"
 coilComposeVersion = "2.7.0"
 commonsText = "1.14.0"
 datastorePreferences = "1.1.7"
@@ -33,6 +34,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+bcrypt = { group = "at.favre.lib", name = "bcrypt", version.ref = "bcrypt" }
 coil-kt-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
@@ -62,4 +64,3 @@ slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroi
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
